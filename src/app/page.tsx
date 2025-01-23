@@ -5,6 +5,7 @@ import { Input } from "../components/Input";
 import { Select } from "../components/Select";
 import { Button } from "../components/Button";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount } from "wagmi";
 
 interface FormState {
   move: string;
@@ -18,6 +19,7 @@ const Home: FC = () => {
     player2: "",
     stake: "",
   });
+  const { address } = useAccount();
 
   const handleChange =
     (field: keyof FormState) =>
@@ -33,14 +35,20 @@ const Home: FC = () => {
     console.log(values);
   };
 
+  if (!address) {
+    return (
+      <main className="h-[87vh] bg-zinc-200 flex items-center justify-center p-4">
+        <ConnectButton />
+      </main>
+    );
+  }
+
   return (
-    <main className="min-h-screen bg-zinc-200 flex items-center justify-center p-4">
+    <main className="h-[87vh] bg-zinc-200 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-xl transition-all duration-300 ease-in-out hover:scale-[1.01] hover:shadow-2xl border border-zinc-300">
         <h1 className="text-2xl font-semibold text-zinc-800 mb-6 text-center">
           Rock Paper Scissors Lizard Spock
         </h1>
-
-        <ConnectButton />
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">

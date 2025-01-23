@@ -8,7 +8,7 @@ const Player2View: FC = () => {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-zinc-200 flex flex-col items-center justify-center p-4">
+      <main className="h-[87vh] bg-zinc-200 flex flex-col items-center justify-center p-4">
         <Loading msg="Waiting for player 2 to play" />
         <div className="w-44 mt-4">
           <Button type="submit">Call Timeout</Button>
@@ -18,7 +18,7 @@ const Player2View: FC = () => {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-200 flex flex-col items-center justify-center p-4">
+    <main className="h-[87vh] bg-zinc-200 flex flex-col items-center justify-center p-4">
       <Result won={false} />
     </main>
   );

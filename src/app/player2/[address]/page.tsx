@@ -20,7 +20,7 @@ const Player2Move: FC = () => {
   };
 
   return (
-    <main className="min-h-screen bg-zinc-200 flex items-center justify-center p-4">
+    <main className="h-[87vh] bg-zinc-200 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-xl transition-all duration-300 ease-in-out hover:scale-[1.01] hover:shadow-2xl border border-zinc-300">
         <h1 className="text-2xl font-semibold text-zinc-800 mb-6 text-center">
           Rock Paper Scissors Lizard Spock
