@@ -4,6 +4,7 @@ import { FC, useState, ChangeEvent, FormEvent } from "react";
 import { Input } from "../components/Input";
 import { Select } from "../components/Select";
 import { Button } from "../components/Button";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 interface FormState {
   move: string;
@@ -38,6 +39,8 @@ const Home: FC = () => {
         <h1 className="text-2xl font-semibold text-zinc-800 mb-6 text-center">
           Rock Paper Scissors Lizard Spock
         </h1>
+
+        <ConnectButton />
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
