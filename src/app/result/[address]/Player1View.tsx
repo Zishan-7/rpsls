@@ -56,11 +56,11 @@ const Player1View: FC = () => {
               value={move}
               onChange={handleChange}
               options={[
-                { value: "rock", label: "Rock" },
-                { value: "paper", label: "Paper" },
-                { value: "scissors", label: "Scissors" },
-                { value: "lizard", label: "Lizard" },
-                { value: "spock", label: "Spock" },
+                { value: "1", label: "Rock" },
+                { value: "2", label: "Paper" },
+                { value: "3", label: "Scissors" },
+                { value: "4", label: "Lizard" },
+                { value: "5", label: "Spock" },
               ]}
             />
           </div>

@@ -4,9 +4,25 @@ import { Button } from "@/components/Button";
 import { Select } from "@/components/Select";
 import { Input } from "@/components/Input";
 import React, { ChangeEvent, FC, FormEvent, useState } from "react";
+import { useReadContract } from "wagmi";
+import RPSABI from "@/contract/RPSABI.json";
+import { useParams } from "next/navigation";
+import Loading from "@/components/Loading";
+import { formatEther } from "viem";
+import { usePlayer2Move } from "@/hooks/useBlockchain";
 
 const Player2Move: FC = () => {
+  const params = useParams();
+  const address = params.address as string;
   const [move, setMove] = useState("");
+
+  const { data: stake, isLoading: isStakeValueLoading } = useReadContract({
+    abi: RPSABI,
+    address: address as `0x${string}`,
+    functionName: "stake",
+  });
+
+  const { playMove, sendingTrasaction, isTxReceiptLoading } = usePlayer2Move();
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -16,8 +32,16 @@ const Player2Move: FC = () => {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    console.log(move);
+    playMove(address, move, formatEther(BigInt(String(stake))));
   };
+
+  if (isStakeValueLoading) {
+    return (
+      <main className="h-[87vh] bg-zinc-200 flex items-center justify-center">
+        <Loading msg="Please wait..." />;
+      </main>
+    );
+  }
 
   return (
     <main className="h-[87vh] bg-zinc-200 flex items-center justify-center p-4">
@@ -37,12 +61,13 @@ const Player2Move: FC = () => {
               label="Choose your move"
               value={move}
               onChange={handleChange}
+              required
               options={[
-                { value: "rock", label: "Rock" },
-                { value: "paper", label: "Paper" },
-                { value: "scissors", label: "Scissors" },
-                { value: "lizard", label: "Lizard" },
-                { value: "spock", label: "Spock" },
+                { value: "1", label: "Rock" },
+                { value: "2", label: "Paper" },
+                { value: "3", label: "Scissors" },
+                { value: "4", label: "Lizard" },
+                { value: "5", label: "Spock" },
               ]}
             />
 
@@ -51,12 +76,17 @@ const Player2Move: FC = () => {
               type="number"
               label="Stake (ETH)"
               placeholder="Enter amount"
-              value={"0.11"}
+              value={formatEther(BigInt(String(stake)))}
               disabled
             />
           </div>
 
-          <Button type="submit">Submit your move</Button>
+          <Button
+            loading={sendingTrasaction || isTxReceiptLoading}
+            type="submit"
+          >
+            Submit your move
+          </Button>
         </form>
       </div>
     </main>
