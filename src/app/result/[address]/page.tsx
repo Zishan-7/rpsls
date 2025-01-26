@@ -30,9 +30,13 @@ const Result: FC = () => {
 
   return (
     <main>
-      {player1Address === walletAddress && <Player1View />}
+      {player1Address === walletAddress && (
+        <Player1View contractAddress={contractAddress} />
+      )}
 
-      {player1Address !== walletAddress && <Player2View />}
+      {player1Address !== walletAddress && (
+        <Player2View contractAddress={contractAddress} />
+      )}
     </main>
   );
 };

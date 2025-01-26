@@ -1,9 +1,18 @@
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
+import { http } from "viem";
 import { sepolia } from "wagmi/chains";
 
+export const projectId = process.env.NEXT_PUBLIC_PROJECT_ID;
+const sepoliaRpc = process.env.NEXT_PUBLIC_SEPOLIA_RPC;
+
+if (!projectId) throw new Error("Project ID is not defined");
+
 export const config = getDefaultConfig({
-  appName: "My RainbowKit App",
-  projectId: "a9cfac5d650cc5894dd8ec808592b552",
+  appName: "Rock paper scissors lizard spock",
+  projectId: projectId,
   chains: [sepolia],
-  ssr: true, // If your dApp uses server side rendering (SSR)
+  ssr: true,
+  transports: {
+    [sepolia.id]: http(sepoliaRpc),
+  },
 });

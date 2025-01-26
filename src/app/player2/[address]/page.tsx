@@ -3,20 +3,25 @@
 import { Button } from "@/components/Button";
 import { Select } from "@/components/Select";
 import { Input } from "@/components/Input";
-import React, { ChangeEvent, FC, FormEvent, useState } from "react";
+import React, { ChangeEvent, FC, FormEvent, useEffect, useState } from "react";
 import { useReadContract } from "wagmi";
 import RPSABI from "@/contract/RPSABI.json";
 import { useParams } from "next/navigation";
 import Loading from "@/components/Loading";
 import { formatEther } from "viem";
 import { usePlayer2Move } from "@/hooks/useBlockchain";
+import { MOVES } from "@/utils/constants";
 
 const Player2Move: FC = () => {
   const params = useParams();
   const address = params.address as string;
   const [move, setMove] = useState("");
 
-  const { data: stake, isLoading: isStakeValueLoading } = useReadContract({
+  const {
+    data: stake,
+    isLoading: isStakeValueLoading,
+    error,
+  } = useReadContract({
     abi: RPSABI,
     address: address as `0x${string}`,
     functionName: "stake",
@@ -34,6 +39,10 @@ const Player2Move: FC = () => {
     e.preventDefault();
     playMove(address, move, formatEther(BigInt(String(stake))));
   };
+
+  useEffect(() => {
+    console.log(error);
+  }, [error]);
 
   if (isStakeValueLoading) {
     return (
@@ -62,13 +71,7 @@ const Player2Move: FC = () => {
               value={move}
               onChange={handleChange}
               required
-              options={[
-                { value: "1", label: "Rock" },
-                { value: "2", label: "Paper" },
-                { value: "3", label: "Scissors" },
-                { value: "4", label: "Lizard" },
-                { value: "5", label: "Spock" },
-              ]}
+              options={MOVES}
             />
 
             <Input

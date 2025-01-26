@@ -4,10 +4,9 @@ import { FC, useState, ChangeEvent, FormEvent } from "react";
 import { Input } from "../components/Input";
 import { Select } from "../components/Select";
 import { Button } from "../components/Button";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount } from "wagmi";
 import { useDeployRPSContract } from "@/hooks/useBlockchain";
 import { useRouter } from "next/navigation";
+import { MOVES } from "@/utils/constants";
 
 interface FormState {
   move: string;
@@ -21,7 +20,6 @@ const Home: FC = () => {
     player2: "",
     stake: "",
   });
-  const { address } = useAccount();
   const {
     deployRPSContract,
     isDeploying,
@@ -44,14 +42,6 @@ const Home: FC = () => {
     deployRPSContract(values.move, values.player2, values.stake);
   };
 
-  if (!address) {
-    return (
-      <main className="h-[87vh] bg-zinc-200 flex items-center justify-center p-4">
-        <ConnectButton />
-      </main>
-    );
-  }
-
   return (
     <main className="h-[87vh] bg-zinc-200 flex flex-col items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-xl transition-all duration-300 ease-in-out hover:scale-[1.01] hover:shadow-2xl border border-zinc-300">
@@ -70,13 +60,7 @@ const Home: FC = () => {
               label="Choose your move"
               value={values.move}
               onChange={handleChange("move")}
-              options={[
-                { value: "1", label: "Rock" },
-                { value: "2", label: "Paper" },
-                { value: "3", label: "Scissors" },
-                { value: "4", label: "Lizard" },
-                { value: "5", label: "Spock" },
-              ]}
+              options={MOVES}
               required
             />
 

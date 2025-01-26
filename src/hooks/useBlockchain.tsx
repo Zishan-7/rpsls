@@ -7,7 +7,7 @@ import {
 import RPSABI from "@/contract/RPSABI.json";
 import { RPSByteCode } from "@/contract/RPSBytecode";
 import { parseEther } from "viem";
-import { hashMove } from "@/utils/crytography";
+import { decrypt, hashMove } from "@/utils/crytography";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -28,7 +28,8 @@ export const useDeployRPSContract = () => {
     });
 
   const deployRPSContract = async (move: string, j2: string, stake: string) => {
-    const { hashedMove } = await hashMove(Number(move));
+    const { hashedMove, salt } = await hashMove(Number(move));
+    console.log(salt);
     deployContract({
       abi: RPSABI,
       bytecode: RPSByteCode,
@@ -71,7 +72,7 @@ export const usePlayer2Move = () => {
       abi: RPSABI,
       address: contractAddress as `0x${string}`,
       functionName: "play",
-      args: [move],
+      args: [Number(move)],
       value: parseEther(stake),
     });
   };
@@ -84,6 +85,56 @@ export const usePlayer2Move = () => {
 
   return {
     playMove,
+    sendingTrasaction,
+    transactionSuccess,
+    isTxReceiptLoading,
+  };
+};
+
+export const useRevealMove = () => {
+  const {
+    writeContract,
+    isPending: sendingTrasaction,
+    data,
+    error,
+  } = useWriteContract();
+
+  const {
+    isLoading: isTxReceiptLoading,
+    isSuccess: transactionSuccess,
+    data: txReceipt,
+  } = useWaitForTransactionReceipt({
+    hash: data,
+    query: {
+      enabled: !!data,
+    },
+  });
+
+  const revealMove = async (
+    contractAddress: string,
+    move: string,
+    salt: string
+  ) => {
+    const decryptedSalt = await decrypt(salt);
+    writeContract({
+      abi: RPSABI,
+      address: contractAddress as `0x${string}`,
+      functionName: "solve",
+      args: [Number(move), decryptedSalt],
+    });
+  };
+
+  useEffect(() => {
+    if (transactionSuccess) {
+      console.log(txReceipt);
+    }
+    if (error) {
+      console.log(error);
+    }
+  }, [error, transactionSuccess, txReceipt]);
+
+  return {
+    revealMove,
     sendingTrasaction,
     transactionSuccess,
     isTxReceiptLoading,
