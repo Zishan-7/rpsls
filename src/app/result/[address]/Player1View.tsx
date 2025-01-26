@@ -5,7 +5,11 @@ import { Input } from "@/components/Input";
 import Loading from "@/components/Loading";
 import Result from "@/components/Result";
 import { Select } from "@/components/Select";
-import { useRevealMove, useWatchResult } from "@/hooks/useBlockchain";
+import {
+  useRevealMove,
+  useTimeout,
+  useWatchResult,
+} from "@/hooks/useBlockchain";
 import React, { FC, FormEvent, useEffect, useState } from "react";
 import { useReadContract } from "wagmi";
 import RPSABI from "@/contract/RPSABI.json";
@@ -23,7 +27,7 @@ const Player1View: FC<Player1ViewProps> = ({ contractAddress }) => {
   const [player2Played, setPlayer2Played] = useState(false);
   const [showTimeoutButton, setshowTimeoutButton] = useState(false);
 
-  const { j2Timeout } = useWatchResult(contractAddress);
+  const { j1Timeout } = useWatchResult(contractAddress);
 
   const { data: move2 } = useReadContract({
     abi: RPSABI,
@@ -34,6 +38,8 @@ const Player1View: FC<Player1ViewProps> = ({ contractAddress }) => {
       enabled: !player2Played,
     },
   });
+
+  const { callTimeout, isCallingTimeout, error } = useTimeout();
 
   const { data: lastAction, isLoading: isLastActionLoading } = useReadContract({
     abi: RPSABI,
@@ -54,6 +60,7 @@ const Player1View: FC<Player1ViewProps> = ({ contractAddress }) => {
     sendingTrasaction,
     isTxReceiptLoading,
     transactionSuccess,
+    isRevealMoveError,
   } = useRevealMove();
 
   const handleSubmit = (e: FormEvent) => {
@@ -76,9 +83,19 @@ const Player1View: FC<Player1ViewProps> = ({ contractAddress }) => {
         <Loading msg="Waiting for player 2 to play" />
         <div className="w-44 mt-4">
           {!isLastActionLoading && showTimeoutButton && new Date() && (
-            <Button type="submit">Call Timeout </Button>
+            <Button
+              loading={isCallingTimeout}
+              type="button"
+              onClick={() => callTimeout(contractAddress, "j2Timeout")}
+            >
+              Call Timeout{" "}
+            </Button>
           )}
         </div>
+
+        {error && (
+          <p className="text-red-500">Some error occured. Please try again</p>
+        )}
       </main>
     );
   }
@@ -92,10 +109,10 @@ const Player1View: FC<Player1ViewProps> = ({ contractAddress }) => {
     );
   }
 
-  if (j2Timeout) {
+  if (j1Timeout) {
     return (
       <main className="h-[87vh] bg-zinc-200 flex flex-col items-center justify-center p-4">
-        <Result result="lost" msg="Player 2 called timeout or " />
+        <Result result="lost" msg="Player 2 called timeout" />
       </main>
     );
   }
@@ -106,6 +123,12 @@ const Player1View: FC<Player1ViewProps> = ({ contractAddress }) => {
         <h1 className="text-2xl font-semibold text-zinc-800 mb-6 text-center">
           Rock Paper Scissors Lizard Spock
         </h1>
+
+        {isRevealMoveError && (
+          <p className="text-red-500">
+            Some error occured, or you might have chosen incorrect move
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">

@@ -21,6 +21,7 @@ export const useDeployRPSContract = () => {
     isSuccess: isDeployed,
     data: deployedTxHash,
   } = useDeployContract();
+  const [salt, setSalt] = useState("");
 
   const { data: txReceipt, isLoading: isTxReceiptLoading } =
     useTransactionReceipt({
@@ -32,7 +33,7 @@ export const useDeployRPSContract = () => {
 
   const deployRPSContract = async (move: string, j2: string, stake: string) => {
     const { hashedMove, salt } = await hashMove(Number(move));
-    console.log(salt);
+    setSalt(salt);
     deployContract({
       abi: RPSABI,
       bytecode: RPSByteCode,
@@ -48,6 +49,7 @@ export const useDeployRPSContract = () => {
     isTxReceiptLoading,
     deployedTxHash,
     contractAddress: txReceipt?.contractAddress,
+    salt,
   };
 };
 
@@ -99,7 +101,7 @@ export const useRevealMove = () => {
     writeContract,
     isPending: sendingTrasaction,
     data,
-    error,
+    isError: isRevealMoveError,
   } = useWriteContract();
 
   const { isLoading: isTxReceiptLoading, isSuccess: transactionSuccess } =
@@ -124,17 +126,12 @@ export const useRevealMove = () => {
     });
   };
 
-  useEffect(() => {
-    if (error) {
-      console.log(error);
-    }
-  }, [error]);
-
   return {
     revealMove,
     sendingTrasaction,
     transactionSuccess,
     isTxReceiptLoading,
+    isRevealMoveError,
   };
 };
 
@@ -165,7 +162,7 @@ export const useWatchResult = (contractAddress: string) => {
 
     // eslint-disable-next-line
     transactions.forEach((transaction: any) => {
-      if (transaction.from == String(player1).toLowerCase()) {
+      if (transaction.from.toLowerCase() == String(player1).toLowerCase()) {
         const functionData = decodeFunctionData({
           abi: RPSABI,
           data: transaction.input,
@@ -182,19 +179,21 @@ export const useWatchResult = (contractAddress: string) => {
           setWinner(_winner);
         }
 
-        if (functionData.functionName === "j1Timeout") {
-          setJ1Timeout(true);
+        if (functionData.functionName === "j2Timeout") {
+          setJ2Timeout(true);
+          setWinner(1);
         }
       }
 
-      if (transaction.from == String(player2).toLowerCase()) {
+      if (transaction.from.toLowerCase() == String(player2).toLowerCase()) {
         const functionData = decodeFunctionData({
           abi: RPSABI,
           data: transaction.input,
         });
 
-        if (functionData.functionName === "j2Timeout") {
-          setJ2Timeout(true);
+        if (functionData.functionName === "j1Timeout") {
+          setJ1Timeout(true);
+          setWinner(2);
         }
       }
     });
@@ -210,5 +209,32 @@ export const useWatchResult = (contractAddress: string) => {
     j1Timeout,
     j2Timeout,
     winner,
+  };
+};
+
+export const useTimeout = () => {
+  const {
+    writeContract,
+    isPending: isCallingTimeout,
+    error,
+    isSuccess: isTimeoutSuccess,
+  } = useWriteContract();
+
+  const callTimeout = (
+    contractAddress: string,
+    timeoutFunction: "j2Timeout" | "j1Timeout"
+  ) => {
+    writeContract({
+      abi: RPSABI,
+      address: contractAddress as `0x${string}`,
+      functionName: timeoutFunction,
+    });
+  };
+
+  return {
+    callTimeout,
+    isCallingTimeout,
+    error,
+    isTimeoutSuccess,
   };
 };

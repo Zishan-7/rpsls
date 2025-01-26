@@ -26,6 +26,7 @@ const Home: FC = () => {
     isDeployed,
     isTxReceiptLoading,
     contractAddress,
+    salt,
   } = useDeployRPSContract();
 
   const handleChange =
@@ -50,7 +51,10 @@ const Home: FC = () => {
         </h1>
 
         {isDeployed && contractAddress && (
-          <SuccessfullDeployment deployedContractAddress={contractAddress} />
+          <SuccessfullDeployment
+            deployedContractAddress={contractAddress}
+            salt={salt}
+          />
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -98,8 +102,10 @@ export default Home;
 
 const SuccessfullDeployment = ({
   deployedContractAddress,
+  salt,
 }: {
   deployedContractAddress: string;
+  salt: string;
 }) => {
   const router = useRouter();
   return (
@@ -134,6 +140,14 @@ const SuccessfullDeployment = ({
           className="px-4 py-2 w-full bg-emerald-500 text-white rounded hover:bg-emerald-600 text-sm font-medium flex justify-center items-center gap-2"
         >
           Go to Game Room
+        </button>
+      </div>
+      <div className="flex justify-end">
+        <button
+          onClick={() => navigator.clipboard.writeText(salt)}
+          className="px-4 py-2 w-full bg-emerald-500 text-white rounded hover:bg-emerald-600 text-sm font-medium flex justify-center items-center gap-2"
+        >
+          Copy Salt (You will need it to reveal your move)
         </button>
       </div>
     </div>

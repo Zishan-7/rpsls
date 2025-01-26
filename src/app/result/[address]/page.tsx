@@ -30,11 +30,13 @@ const Result: FC = () => {
 
   return (
     <main>
-      {player1Address === walletAddress && (
+      {String(player1Address).toLowerCase() ===
+        walletAddress?.toLowerCase() && (
         <Player1View contractAddress={contractAddress} />
       )}
 
-      {player1Address !== walletAddress && (
+      {String(player1Address).toLowerCase() !==
+        walletAddress?.toLowerCase() && (
         <Player2View contractAddress={contractAddress} />
       )}
     </main>

@@ -5,7 +5,7 @@ import React, { FC, useEffect, useState } from "react";
 import { useReadContract } from "wagmi";
 import RPSABI from "@/contract/RPSABI.json";
 import { useTimer } from "react-timer-hook";
-import { useWatchResult } from "@/hooks/useBlockchain";
+import { useTimeout, useWatchResult } from "@/hooks/useBlockchain";
 
 interface Player2ViewProps {
   contractAddress: string;
@@ -14,6 +14,8 @@ interface Player2ViewProps {
 const Player2View: FC<Player2ViewProps> = ({ contractAddress }) => {
   const [showTimeoutButton, setshowTimeoutButton] = useState(false);
   const { winner } = useWatchResult(contractAddress);
+
+  const { callTimeout, isCallingTimeout, error } = useTimeout();
 
   const { data: lastAction, isLoading: isLastActionLoading } = useReadContract({
     abi: RPSABI,
@@ -41,9 +43,18 @@ const Player2View: FC<Player2ViewProps> = ({ contractAddress }) => {
         <Loading msg="Waiting for player 1 reveal their move" />
         <div className="w-44 mt-4">
           {!isLastActionLoading && showTimeoutButton && new Date() && (
-            <Button type="submit">Call Timeout </Button>
+            <Button
+              loading={isCallingTimeout}
+              type="button"
+              onClick={() => callTimeout(contractAddress, "j1Timeout")}
+            >
+              Call Timeout{" "}
+            </Button>
           )}
         </div>
+        {error && (
+          <p className="text-red-500">Some error occured. Please try again</p>
+        )}
       </main>
     );
   }
