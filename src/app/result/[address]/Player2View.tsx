@@ -4,26 +4,16 @@ import Result from "@/components/Result";
 import React, { FC, useEffect, useState } from "react";
 import { useReadContract } from "wagmi";
 import RPSABI from "@/contract/RPSABI.json";
-import { formatEther } from "viem";
 import { useTimer } from "react-timer-hook";
+import { useWatchResult } from "@/hooks/useBlockchain";
 
 interface Player2ViewProps {
   contractAddress: string;
 }
 
 const Player2View: FC<Player2ViewProps> = ({ contractAddress }) => {
-  const [resultDeclared, setresultDeclared] = useState(false);
   const [showTimeoutButton, setshowTimeoutButton] = useState(false);
-
-  const { data: stake } = useReadContract({
-    abi: RPSABI,
-    address: contractAddress as `0x${string}`,
-    functionName: "stake",
-    query: {
-      refetchInterval: 1000,
-      enabled: !resultDeclared,
-    },
-  });
+  const { winner } = useWatchResult(contractAddress);
 
   const { data: lastAction, isLoading: isLastActionLoading } = useReadContract({
     abi: RPSABI,
@@ -40,16 +30,12 @@ const Player2View: FC<Player2ViewProps> = ({ contractAddress }) => {
   });
 
   useEffect(() => {
-    if (stake && Number(formatEther(BigInt(String(stake)))) === 0) {
-      setresultDeclared(true);
-    }
-
     if (lastAction) {
       restart(new Date(Number(lastAction) * 1000 + 5 * 60 * 1000));
     }
-  }, [stake, lastAction, restart]);
+  }, [lastAction, restart]);
 
-  if (!resultDeclared) {
+  if (winner === -1) {
     return (
       <main className="h-[87vh] bg-zinc-200 flex flex-col items-center justify-center p-4">
         <Loading msg="Waiting for player 1 reveal their move" />
@@ -64,7 +50,7 @@ const Player2View: FC<Player2ViewProps> = ({ contractAddress }) => {
 
   return (
     <main className="h-[87vh] bg-zinc-200 flex flex-col items-center justify-center p-4">
-      <Result won={false} />
+      <Result result={winner === 2 ? "won" : winner === 0 ? "tie" : "lost"} />
     </main>
   );
 };

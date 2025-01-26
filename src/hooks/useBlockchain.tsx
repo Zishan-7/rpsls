@@ -1,15 +1,18 @@
 import {
   useDeployContract,
+  useReadContract,
   useTransactionReceipt,
   useWaitForTransactionReceipt,
+  useWatchBlocks,
   useWriteContract,
 } from "wagmi";
 import RPSABI from "@/contract/RPSABI.json";
 import { RPSByteCode } from "@/contract/RPSBytecode";
-import { parseEther } from "viem";
+import { Block, decodeFunctionData, parseEther } from "viem";
 import { decrypt, hashMove } from "@/utils/crytography";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { declareWinner } from "@/utils/getWinner";
 
 export const useDeployRPSContract = () => {
   const {
@@ -99,16 +102,13 @@ export const useRevealMove = () => {
     error,
   } = useWriteContract();
 
-  const {
-    isLoading: isTxReceiptLoading,
-    isSuccess: transactionSuccess,
-    data: txReceipt,
-  } = useWaitForTransactionReceipt({
-    hash: data,
-    query: {
-      enabled: !!data,
-    },
-  });
+  const { isLoading: isTxReceiptLoading, isSuccess: transactionSuccess } =
+    useWaitForTransactionReceipt({
+      hash: data,
+      query: {
+        enabled: !!data,
+      },
+    });
 
   const revealMove = async (
     contractAddress: string,
@@ -125,18 +125,90 @@ export const useRevealMove = () => {
   };
 
   useEffect(() => {
-    if (transactionSuccess) {
-      console.log(txReceipt);
-    }
     if (error) {
       console.log(error);
     }
-  }, [error, transactionSuccess, txReceipt]);
+  }, [error]);
 
   return {
     revealMove,
     sendingTrasaction,
     transactionSuccess,
     isTxReceiptLoading,
+  };
+};
+
+export const useWatchResult = (contractAddress: string) => {
+  const [j1Timeout, setJ1Timeout] = useState(false);
+  const [j2Timeout, setJ2Timeout] = useState(false);
+  const [winner, setWinner] = useState<number>(-1);
+  const { data: player1 } = useReadContract({
+    abi: RPSABI,
+    address: contractAddress as `0x${string}`,
+    functionName: "j1",
+  });
+
+  const { data: player2 } = useReadContract({
+    abi: RPSABI,
+    address: contractAddress as `0x${string}`,
+    functionName: "j2",
+  });
+
+  const { data: player2Move } = useReadContract({
+    abi: RPSABI,
+    address: contractAddress as `0x${string}`,
+    functionName: "c2",
+  });
+
+  const onBlock = (block: Block) => {
+    const transactions = block.transactions;
+
+    // eslint-disable-next-line
+    transactions.forEach((transaction: any) => {
+      if (transaction.from == String(player1).toLowerCase()) {
+        const functionData = decodeFunctionData({
+          abi: RPSABI,
+          data: transaction.input,
+        });
+
+        if (functionData.functionName === "solve") {
+          const player1Move = functionData.args?.[0];
+
+          const _winner = declareWinner(
+            Number(player1Move),
+            Number(player2Move)
+          );
+
+          setWinner(_winner);
+        }
+
+        if (functionData.functionName === "j1Timeout") {
+          setJ1Timeout(true);
+        }
+      }
+
+      if (transaction.from == String(player2).toLowerCase()) {
+        const functionData = decodeFunctionData({
+          abi: RPSABI,
+          data: transaction.input,
+        });
+
+        if (functionData.functionName === "j2Timeout") {
+          setJ2Timeout(true);
+        }
+      }
+    });
+  };
+
+  useWatchBlocks({
+    includeTransactions: true,
+    emitOnBegin: true,
+    onBlock: onBlock,
+  });
+
+  return {
+    j1Timeout,
+    j2Timeout,
+    winner,
   };
 };

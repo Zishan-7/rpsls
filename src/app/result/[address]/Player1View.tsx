@@ -5,12 +5,13 @@ import { Input } from "@/components/Input";
 import Loading from "@/components/Loading";
 import Result from "@/components/Result";
 import { Select } from "@/components/Select";
-import { useRevealMove } from "@/hooks/useBlockchain";
+import { useRevealMove, useWatchResult } from "@/hooks/useBlockchain";
 import React, { FC, FormEvent, useEffect, useState } from "react";
 import { useReadContract } from "wagmi";
 import RPSABI from "@/contract/RPSABI.json";
 import { useTimer } from "react-timer-hook";
 import { MOVES } from "@/utils/constants";
+import { declareWinner } from "@/utils/getWinner";
 
 interface Player1ViewProps {
   contractAddress: string;
@@ -21,6 +22,8 @@ const Player1View: FC<Player1ViewProps> = ({ contractAddress }) => {
   const [salt, setSalt] = useState("");
   const [player2Played, setPlayer2Played] = useState(false);
   const [showTimeoutButton, setshowTimeoutButton] = useState(false);
+
+  const { j2Timeout } = useWatchResult(contractAddress);
 
   const { data: move2 } = useReadContract({
     abi: RPSABI,
@@ -81,9 +84,18 @@ const Player1View: FC<Player1ViewProps> = ({ contractAddress }) => {
   }
 
   if (transactionSuccess) {
+    const winner = declareWinner(Number(move), Number(move2));
     return (
       <main className="h-[87vh] bg-zinc-200 flex flex-col items-center justify-center p-4">
-        <Result won={true} />
+        <Result result={winner === 1 ? "won" : winner === 0 ? "tie" : "lost"} />
+      </main>
+    );
+  }
+
+  if (j2Timeout) {
+    return (
+      <main className="h-[87vh] bg-zinc-200 flex flex-col items-center justify-center p-4">
+        <Result result="lost" msg="Player 2 called timeout or " />
       </main>
     );
   }
