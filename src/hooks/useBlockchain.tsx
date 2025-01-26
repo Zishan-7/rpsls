@@ -1,7 +1,6 @@
 import {
   useDeployContract,
   useReadContract,
-  useTransactionReceipt,
   useWaitForTransactionReceipt,
   useWatchBlocks,
   useWriteContract,
@@ -24,7 +23,7 @@ export const useDeployRPSContract = () => {
   const [salt, setSalt] = useState("");
 
   const { data: txReceipt, isLoading: isTxReceiptLoading } =
-    useTransactionReceipt({
+    useWaitForTransactionReceipt({
       hash: deployedTxHash,
       query: {
         enabled: !!deployedTxHash,
